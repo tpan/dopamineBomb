@@ -66,3 +66,4 @@ node_modules/
 
 # firebase config
 .config.js
+.certificate.js
