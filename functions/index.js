@@ -7,27 +7,35 @@ admin.initializeApp({
     databaseURL: "https://dopaminebomb.firebaseio.com"
 });
 
-exports.helloWorld = functions.https.onRequest((req, res) => {
- response.send("Hello World!");
-});
+const express = require("express")
+const app = express();
 
-exports.getYeets = functions.https.onRequest((req, res) => {
-    admin.firestore().collection('yeets').get()
+app.get('/yeets', (req, res) => {
+    admin
+    .firestore()
+    .collection('yeets')
+    .orderBy('createdAt', 'desc')
+    .get()
     .then(data => {
         let yeets = [];
         data.forEach(doc => {
-                yeets.push(doc.data());
+            yeets.push({
+              yeetId: doc.id,
+              body: doc.data().body,
+              userName: doc.data().userName,
+              createdAt: doc.data().createdAt  
+            });
         });
-        return response.json(yeets)
+        return res.json(yeets)
     })
     .catch(err => console.error(err))
 })
 
-exports.createYeet = functions.https.onRequest((req, res) => {
+app.post('/yeet', (req, res) => {
    const newYeet = {
        body: req.body.body,
        userName: req.body.userName,
-       createdAt: admin.firestore.Timestamp.fromDate(new Date())
+       createdAt: new Date().toISOString()
    }
 
    admin.firestore()
@@ -41,3 +49,5 @@ exports.createYeet = functions.https.onRequest((req, res) => {
        console.error(err)
    })
 })
+
+exports.api = functions.https.onRequest(app);
